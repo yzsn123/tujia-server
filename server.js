@@ -5,21 +5,22 @@ const MongoDBStore = require("connect-mongodb-session")(session);
 
 const app = express();
 
-const store = new MongoDBStore({
+var store = new MongoDBStore({
   uri: "mongodb://localhost:27017/tujia",
-  collection: "sessino"
+  collection: "session"
 });
-// 捕捉错误
+
+// Catch errors
 store.on("error", function(error) {
   console.log(error);
 });
 
 app.use(
-  require("express-session")({
-    secret: "tujia",
+  session({
+    secret: "secret",
     name: "login_session",
     cookie: {
-      maxAge: 1000 * 60 * 60 * 24 * 30
+      maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
     },
     store: store,
     resave: true,
@@ -27,24 +28,20 @@ app.use(
   })
 );
 
-app.use(
-  express.urlencoded({
-    urlencoded: false,
-  })
-);
+app.use(express.urlencoded({urlencoded: false}));
+app.use(express.json());
 
-// app.use(express.json());
 
-app.use("/static", express.static("./static"));
 app.use("/api/home", require("./routers/home"));
 app.use("/api/found", require("./routers/found"));
 app.use("/api/user", require("./routers/user"));
-
+app.use("/api/order", require("./routers/order"))
+app.use("/static", express.static("./static"));
 mongoose.connect(
   "mongodb://localhost:27017/tujia",
   {
     useNewUrlParser: true,
-    useUnifiedTopology: true,
+    useUnifiedTopology: true
   },
   error => {
     if (error) {
